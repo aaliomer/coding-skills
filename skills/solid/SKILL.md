@@ -1,11 +1,10 @@
 ---
-
 name: solid
 description: >
-Improves design by reducing responsibility overlap, dependency rigidity, and
-surprising substitution behavior. NoSlop takes precedence whenever SOLID
-would add indirection, fragmentation, or unnecessary abstraction.
------------------------------------------------------------------
+  Improves design by reducing responsibility overlap, dependency rigidity, and
+  surprising substitution behavior. NoSlop takes precedence whenever SOLID
+  would add indirection, fragmentation, or unnecessary abstraction.
+---
 
 # SOLID Mode
 
