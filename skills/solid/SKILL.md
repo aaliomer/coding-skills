@@ -1,9 +1,6 @@
 ---
 name: solid
-description: >
-  Improves design by reducing responsibility overlap, dependency rigidity, and
-  surprising substitution behavior. NoSlop takes precedence whenever SOLID
-  would add indirection, fragmentation, or unnecessary abstraction.
+description: Improves design by reducing responsibility overlap, dependency rigidity, and surprising substitution behavior. NoSlop takes precedence whenever SOLID would add indirection, fragmentation, or unnecessary abstraction.
 ---
 
 # SOLID Mode
@@ -27,12 +24,24 @@ changeability, and local reasoning—not override them.
 
 ## Design Goals
 
-* Reduce ripple effects when requirements change.
-* Make responsibilities easy to name and locate.
+* Reduce ripple effects when requirements change (minimize coupling).
+* Make responsibilities easy to name and locate (maximize cohesion).
 * Keep dependencies pointed at stable abstractions when the boundary is real.
 * Preserve substitutability so callers do not need special cases.
 * Avoid interface and class explosion that fragments understanding.
 * Prefer the simplest structure that still makes change safe.
+* Balance design quality with cognitive load - SOLID should reduce mental complexity, not increase it.
+
+## Design Metrics
+
+When SOLID principles are applied well, code exhibits measurable properties:
+
+* **Cohesion:** Classes have high LCOM (Lack of Cohesion of Methods) scores - methods use the same instance variables.
+* **Coupling:** Low afferent coupling (Ca) for volatile classes, high for stable abstractions. Instability metric I = Ce/(Ce+Ca) should match stability needs.
+* **Class Size:** Optimal range 200-400 lines. Below 50 lines may indicate over-splitting; above 500 suggests responsibility drift.
+* **Method Count:** Interfaces with >10 methods likely violate ISP. Classes with >20 public methods suggest SRP violations.
+* **Dependency Direction:** Dependencies should flow toward stability. Stable abstractions should have high Ca, low Ce.
+* **Cyclomatic Complexity:** Per NoSlop, keep ≤10 per method. SOLID refactoring should reduce, not increase, complexity.
 
 ## The Five Principles
 
@@ -147,12 +156,16 @@ Invert dependencies where the boundary is real and stable enough to justify it. 
 
 Analyze code for the following **design spikes**:
 
-1. **Responsibility Drift:** Does one unit do too many unrelated things?
-2. **Modification Gravity:** Does a small new feature require editing many existing units?
-3. **Substitution Breakage:** Would a subtype surprise a caller expecting the base contract?
-4. **Interface Fatigue:** Does a client depend on methods it never uses?
-5. **Dependency Tangle:** Does core logic depend on unstable implementation details?
-6. **Abstraction Bloat:** Did SOLID introduce more files, classes, or indirection than the problem needs?
+1. **Responsibility Drift (SRP):** Does one unit do too many unrelated things? Check class size (>500 LOC), method count (>20 public methods), and whether the class name requires "and" or "or".
+2. **Modification Gravity (OCP):** Does a small new feature require editing many existing units? Check if changes ripple across multiple classes.
+3. **Substitution Breakage (LSP):** Would a subtype surprise a caller expecting the base contract? Check for thrown exceptions, weakened postconditions, or strengthened preconditions.
+4. **Interface Fatigue (ISP):** Does a client depend on methods it never uses? Check interface size (>10 methods) and whether implementations stub methods.
+5. **Dependency Tangle (DIP):** Does core logic depend on unstable implementation details? Check dependency direction - stable abstractions should have high afferent coupling.
+6. **Abstraction Bloat:** Did SOLID introduce more files, classes, or indirection than the problem needs? Check if class count increased without reducing coupling or improving cohesion.
+7. **Cohesion Breakdown:** Do class methods operate on disjoint sets of instance variables? Calculate LCOM - high values indicate low cohesion.
+8. **Coupling Excess:** Does the class have high efferent coupling (Ce > 7-10)? High Ce indicates fragility and testing difficulty.
+9. **Cognitive Load Increase:** Did the refactor increase cyclomatic complexity, nesting depth, or navigation distance? SOLID should reduce mental load, not increase it.
+10. **Premature Generalization:** Are there abstractions with only one implementation? Wait for the second or third use case before abstracting.
 
 ## Refactor Prompts
 
@@ -259,32 +272,63 @@ interface Worker {
 
 ### Lite — Shape Only
 
-Focus on obvious responsibility boundaries and avoiding giant interfaces.
+* Focus on obvious responsibility boundaries (classes >500 LOC, methods >50 LOC).
+* Avoid giant interfaces (>10 methods).
+* Apply guard clauses and basic separation of concerns.
+* No premature abstraction - wait for real variation.
 
 ### Full — Practical SOLID
 
-Apply SOLID where it reduces change cost without adding unnecessary layers.
+* Apply all five principles where they reduce change cost.
+* Use metrics: LCOM for cohesion, Ce/Ca for coupling, class size 200-400 LOC.
+* Extract abstractions after 2-3 concrete implementations.
+* Ensure SOLID refactoring reduces cyclomatic complexity and nesting depth.
+* Balance design quality with NoSlop cognitive load principles.
 
 ### Ultra — High Discipline
 
-Prefer explicit contracts, composition over inheritance, and stable boundaries.
-Avoid architectural ceremony that makes simple code harder to understand.
+* Prefer explicit contracts and composition over inheritance.
+* Maintain stable boundaries with clear dependency direction.
+* Keep instability metric I aligned with stability needs (stable = low I, volatile = high I).
+* Aggressively refactor responsibility drift and coupling excess.
+* Avoid architectural ceremony - every abstraction must justify its cognitive cost.
+* Continuously measure: if SOLID increases complexity or navigation distance, revert.
 
 ## Implementation Checklist
 
-* Does each module have one clear responsibility?
+* Does each module have one clear responsibility? (Check: class size 200-400 LOC, <20 public methods)
 * Can common changes happen by extension rather than modification?
-* Do all subtypes obey the same contract?
-* Do clients depend only on methods they actually use?
-* Are dependencies pointed at stable abstractions at the boundary?
-* Did abstraction simplify the design rather than multiply it?
-* Would NoSlop consider this refactor an improvement in actual readability?
+* Do all subtypes obey the same contract without surprises?
+* Do clients depend only on methods they actually use? (Check: interface size <10 methods)
+* Are dependencies pointed at stable abstractions at the boundary? (Check: dependency direction flows toward stability)
+* Did abstraction simplify the design rather than multiply it? (Check: cohesion increased, coupling decreased)
+* Would NoSlop consider this refactor an improvement in actual readability? (Check: complexity ≤10, nesting ≤2, navigation distance reduced)
+* Are coupling metrics healthy? (Check: Ce <7-10, appropriate Ca for stability level)
+* Is cohesion high? (Check: methods use shared instance variables, low LCOM)
+* Did the refactor reduce cognitive load? (Check: fewer mental jumps, clearer data flow)
 
 ## Boundaries
 
-* **NoSlop takes precedence.** If a SOLID refactor makes the code harder to read or more fragmented, do not apply it.
-* **Do not over-abstract.** SOLID is for reducing change pain, not for maximizing the number of classes.
-* **Do not force inheritance.** Use it only when substitutability is genuine.
-* **Do not split for aesthetics.** Keep related logic together when separation hurts comprehension.
-* **Do not ignore context.** In small scripts or one-off tools, the simplest code may be better than a polished design.
+* **NoSlop takes precedence.** If a SOLID refactor makes the code harder to read or more fragmented, do not apply it. Cognitive load reduction trumps architectural purity.
+* **Do not over-abstract.** SOLID is for reducing change pain, not for maximizing the number of classes. Every abstraction must justify its existence.
+* **Do not force inheritance.** Use it only when substitutability is genuine and the "is-a" relationship is semantically correct.
+* **Do not split for aesthetics.** Keep related logic together when separation hurts comprehension. Cohesion matters more than class count.
+* **Do not ignore context.** In small scripts or one-off tools, the simplest code may be better than a polished design. SOLID is for systems that change.
+* **Metrics are guidelines.** Thresholds (class size, coupling, complexity) are heuristics, not laws. Context and judgment matter.
+* **Wait for variation.** Do not abstract until you have 2-3 concrete cases. Premature abstraction is worse than duplication.
 * **If the user says `stop solid`, revert immediately.**
+
+## Research References
+
+This skill is grounded in software engineering research and design theory:
+
+* **Coupling & Cohesion:** Stevens, Myers, Constantine (1974) - Foundational structured design principles
+* **SOLID Principles:** Martin (1995-2000) - Original formulation of the five principles
+* **Dependency Metrics:** Martin (1994) - Afferent/Efferent coupling, Instability, Abstractness
+* **Empirical SOLID Studies:** Daly et al. (2013), Yamashita & Moonen (2013) - Effectiveness of SOLID in practice
+* **Class Size Research:** Basili et al. (1996) - Optimal class size for maintainability
+* **Cohesion Metrics:** Chidamber & Kemerer (1994) - LCOM and other OO metrics
+* **Cognitive Dimensions:** Green & Petre (1996) - How design affects comprehension
+* **Code Smells:** Fowler (1999) - Indicators of design problems
+* **Design Patterns:** Gamma et al. (1994) - Reusable solutions that embody SOLID
+* **Refactoring:** Fowler (1999) - Techniques for improving design without changing behavior
